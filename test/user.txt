@@ -1,0 +1,7 @@
+﻿rendong         1978           male  good man
+tangsidian      1995           female   lazy woman
+孙悟空  2001 23
+猪八戒 23 23
+孙悟空
+唐僧
+沙悟净
