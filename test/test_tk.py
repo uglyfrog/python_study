@@ -17,7 +17,7 @@ root.title("战斗模拟器")
 root.geometry("300x500+100+100")
 # 去除边框
 root.overrideredirect(0)
-root.iconbitmap("submarine.ico")
+# root.iconbitmap("submarine.ico")
 
 # cv = Canvas(root,bg = 'blue',width = 150,height = 150)  
 # cv.grid(row=0,column=0)
@@ -33,9 +33,9 @@ ta = cv.create_rectangle(10,10,50,50,fill = 'red',outline = 'yellow',width = 3,d
 cv.place(x=100,y=0)
 
 # example of image added in label
-logo = ImageTk.PhotoImage(file="d:/python_test/xiyou.png") 
-label_logo = Label(root, justify=RIGHT, image = logo, padx = 0,pady=0).place(x=100,y=160)
-label_title = Label(root, justify=RIGHT, text="完全模拟MMORPG战斗", padx =5, font = "Verdana 10 bold", fg = "light yellow", bg = "dark green",)
+# logo = ImageTk.PhotoImage(file="d:/python_test/xiyou.png")
+label_logo = Label(root, justify=RIGHT, padx=0, pady=0).place(x=100, y=160)
+label_title = Label(root, justify=RIGHT, text="完全模拟MMORPG战斗", padx =5, font = "Verdana 10 bold", fg="light yellow", bg="dark green",)
 label_title.place(x=80,y=110)
 
 # example of entry
@@ -102,7 +102,7 @@ def tool_des():
 	top_window = Toplevel(root)
 	top_window.title("说明")
 	top_window.geometry("140x50+175+300")
-	top_window.iconbitmap("support.ico")
+	# top_window.iconbitmap("support.ico")
 	cv = Canvas(top_window,bg = "black" ,width = 140,height = 50).grid(row=2,column=2)
 	top_window_label = Label(top_window, text = "这是一个工具演示！",bg = "white")
 	top_window_label.grid(row=2, column=2)
