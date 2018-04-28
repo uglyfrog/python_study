@@ -42,14 +42,14 @@
 # solution(15)
 
 
-def countBits(n):
-    print(bin(n))
-    s = str(bin(n).replace("0b", ""))
-    print(s)
-    return s.count("1")
-
-
-print(countBits(1234))
+# def countBits(n):
+#     print(bin(n))
+#     s = str(bin(n).replace("0b", ""))
+#     print(s)
+#     return s.count("1")
+#
+#
+# print(countBits(1234))
 
 
 # defcountBits(n):
@@ -930,3 +930,6 @@ print(countBits(1234))
 #
 # print((lettertonumber('P')+lettertonumber('A'))//26)
 # print(numbertoletter((lettertonumber('P')+lettertonumber('A'))//26))
+
+for num in range(256):
+    print("%s" % chr(num),end="")
