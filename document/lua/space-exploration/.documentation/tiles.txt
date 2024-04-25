@@ -1,0 +1,44 @@
+Converting from map_gen_setting:planet_size:frequency to planet radius:
+planet_size ranges from 17% min, 100% default, 600% max  (0.17, 1, 6)
+percent_of_max = (6 + log(percent_of_max/6, 2)) / 6
+percent_of_max converts:
+17% -> 14%
+100% -> 50%
+600% -> 100%
+
+planet_radius = percent_of_max * max_planet_size
+max_planet_size is 10000
+17% -> 1431
+100% -> 5000
+600% -> 10000
+
+final formulas for scale:
+planet_radius = 10000 / 6 * (6 + log(planet_size/6, 2))
+
+planet_size = 6 * 2 ^ (planet_radius / 10000 * 6 - 6)
+
+actual impementations use frequency:
+planet_radius = 10000 / 6 * (6 + log(1/planet_frequency/6, 2))
+
+planet_frequency = 1 / 6 / 2 ^ (planet_radius * 6 / 10000 - 6)
+
+
+Planets:
+  Plant tile generation follows rules set by other mods
+  At a certain radius the planet-size setting kicks in and tiles spawn as out-of-map
+    This makes circular planets.
+  Planets have altered map-gen settings for climate: temperature, moisture, aux
+
+Space:
+  The planet-size setting should be set to something extremely large so out-of-tile are unlikely to be reached
+  Space tiles spawn with extreme influence were planet-size is set to a normally unreachable setting (100)
+  All non-space tiles must have an upper limit on their influence less than space tiles.
+
+  Natural space tiles are:
+    Space
+    Asteroid
+
+  Artificial space tiles are:
+    Space Platform Scaffold
+    Space Platform Plating
+    Spaceship floor (has own layer)

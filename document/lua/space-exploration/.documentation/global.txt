@@ -1,0 +1,364 @@
+-- Zones have an inheritace chain:
+  Zone -- anomaly, asteroid-field, asteroid-belt, orbit
+    Zone:Body -- star planet or moon
+      Zone:Body:Star -- stellar_position, children, asteroid_belts, star_gravity_well, orbit, has no own surface (uses orbit)
+      Zone:Body:Planet -- star_gravity_well, planet_gravity_well, children, orbit
+      Zone:Body:Moon -- star_gravity_well, planet_gravity_well, orbit
+    Zone:BlackHole -- has no stellar position. Loophole: equal distance to all stars
+    Zone:AsteroidBelt -- star_gravity_well
+    Zone:AsteroidField -- stellar_position
+
+-- Locations specify a point in the world:
+Location {
+  index = int, -- zone index or spaceship index or star zone index
+  position = {x,y} -- position in the zone
+  type = "spaceship" or "zone" or "interstellar" or "system" -- the type of location this is
+  name = string -- a nice name for this location
+}
+
+
+global {
+  seed = nauvis.map_gen_settings.seed,
+	version=3112, -- for on_configuration_changed phase migration code. Is more flexible than the normal system.
+  tick_task_next_id = int,
+  tick_tasks = dictionary{
+    -- tick tacks are objects that have per-tick functionality for systems that are not usually per-tick systems.
+    -- used for animations, solar flares, rocket launches and landings, special weapon fx, etc.
+    -- for example, the tesla gun spawns a tick task when it fires, the arcs of electrivity are genrated per frame until the effect ends.
+    tick_task_id = {
+      id = tick_task_next_id,
+       type = "keyword determines secondary function call or removeal"
+       valid = true, -- needs to stay valid or be removed
+       otherdata...
+    }
+  },
+  astronomical = dictionary{ -- the structured map of the universe.
+    stars = array {
+      1 = Zone:Body:Star {
+        type = "star",
+        name = "body_name",
+        index = zone_index,
+        star_gravity_well = float, -- how far in star gravity well
+        surface_index = nil or surface_index,
+        orbit = Zone:Orbit{
+          type = "orbit",
+          name = "body_name" .. " Orbit",
+          controls = {control_name = {frequency, scale, richness}}, -- resource controls
+          parent = Star,
+          surface_index = nil or surface_index,
+        },
+        children = array{
+          1 = Zone:AsteroidBelt{
+            type = "asteroid-belt",
+            name = star.name .. " Asteroid Belt ".. 1,
+            controls = {control_name = {frequency, scale, richness}}, -- resource controls
+            index = zone_index,
+            parent = Star,
+            star_gravity_well = float, -- how far in star gravity well
+          },
+          2 = Zone:Body:Planet {
+            type = "planet",
+            name = "body_name",
+            index = zone_index,
+            radius_multiplier = 0.2 to 1,
+            radius = 2000 to 10000,
+            parent = Star,
+            star_gravity_well = float, -- how far in star gravity well
+            planet_gravity_well = float, -- how far in planet gravity well
+            controls = {control_name = {frequency, scale, richness}}, -- climate and resource controls
+            resources = {primary resource},
+            fragment_name = "se-core-fragment-iron-ore",
+            tags = {"water_none"}, -- climate generation tags
+            biome_replacements = {
+              {replace={"all-dirt", "all-sand", "all-volcanic"}, with="sand-red"},
+              {replace={"all-vegetation", "all-frozen"}, with="vegetation-red"}
+            },
+            tile_replacements = {
+              ["tile-a"] = "tile-b",
+            },
+            core_miners = array(
+              1 = CoreMinerStruct{}
+            ),
+            glyph = glyph,
+            vault_pyramid  = LuaEntity,
+            surface_index = nil or surface_index,
+            orbit = Zone:Orbit{
+              type = "orbit",
+              name = "body_name" .. " Orbit",
+              controls = {control_name = {frequency, scale, richness}}, -- resource controls
+              parent = Planet,
+              surface_index = nil or surface_index,
+            },
+            children = array {
+              1 = Zone:Body:Moon{
+                type = "moon",
+                name = "body_name",
+                index = zone_index,
+                radius_multiplier = 0.2 to 1,
+                radius = 5000 to 400, (can't be more than 50% of planet size)
+                star_gravity_well = float, -- how far in star gravity well
+                planet_gravity_well = float, -- how far in planet gravity well
+                star_gravity_well = float, -- how far in star gravity well
+                planet_gravity_well = float, -- how far in planet gravity well
+                controls = {control_name = {frequency, scale, richness}}, -- climate and resource controls
+                resources = {primary resource},
+                fragment_name = "se-core-fragment-iron-ore",
+                tags = {"water_none"}, -- climate generation tags
+                biome_replacements = {
+                  {replace={"all-dirt", "all-sand", "all-volcanic"}, with="sand-red"},
+                  {replace={"all-vegetation", "all-frozen"}, with="vegetation-red"}
+                },
+                tile_replacements = {
+                  ["tile-a"] = "tile-b",
+                },
+                parent = Planet,
+                core_miners = array(
+                  1 = CoreMinerStruct{}
+                ),
+                surface_index = nil or surface_index,
+                orbit = Zone:Orbit{
+                  type = "orbit",
+                  name = "body_name" .. " Orbit",
+                  controls = {control_name = {frequency, scale, richness}}, -- resource controls
+                  parent = Moon,
+                  surface_index = nil or surface_index,
+                },
+              }
+            }
+          }
+        },
+      },
+    },
+    black_hole = Zone:BlackHole{ -- only 1 of these, not in the 2d layer, equal disance in 3rd layer
+      type = "anomaly",
+      index = zone_index, -- 3
+      name = "Foenestra" -- window, loophole, Hole, breach, opening
+      surface_index = nil or surface_index,
+    },
+    space_zones = array{
+      1 = Zone:AsteroidField{
+        type = "asteroid-field",
+        name = "zone-name",
+        index = zone_index,
+        controls = {control_name = {frequency, scale, richness}}, -- resource controls
+        stellar_position = {x = x, y = y},
+        surface_index = nil or surface_index,
+      }
+    },
+    zones_by_name -- this gets moved out of stellar cluster after formation
+  }, -- end stellar cluster
+  zone_index = array{
+    1 = Zone{ ... allzones by their zone_index = zone.index }
+  },
+  zones_by_name = array{
+    name = Zone { Zone(deep space), Star, Planet, or Moon, Orbit }
+  },
+  zones_by_surface = array{ -- links a surface index to a zone
+    surface_index = Zone { Zone(deep space), Star, Planet, or Moon, Orbit }
+  },
+  zones_alphabetised = array{
+
+  },
+  zones_by_resource_options = array{
+    homeworld = {},
+    planet = {}, -- and moons, not homeworlds
+    anomaly = {},
+    ["asteroid-belt"] = {},
+    ["asteroid-field"] = {},
+    orbit = {}, -- any orbit type or star
+  },
+  spaceships = array{
+    1 = Spaceship{
+      index = i,
+      name = "Unique Name",
+      force_name,
+      console = LuaEntity or nil, -- can only be nil if in own space
+      space_distortion = 0-1
+      stellar_position = {x = x, y = y},
+      star_gravity_well = float,
+      planet_gravity_well = float,
+      zone_index = -- landed zone,
+      near = {type = "zone" / "spaceship", index = int}, or nil. -- at location ready to land
+      destination = {type = "zone" / "spaceship", index = int}, or nil.
+      own_surface_index =,
+      known_tiles = {}
+      check_tiles,
+      pending_tiles,
+      is_landing
+      is_launching
+      is_stopped
+      console
+
+    }
+  },
+  glyph_vaults = array{
+    1 (glyph id) = vaults {
+      zone_id = {
+       glyph = int,
+       zone_index = int,
+       surface_index = int, -- only exists if surface is made.
+      }
+    }
+  },
+  playerdata = array{
+    player_index = PlayerData{
+      zero_velocity = true, optional, used to zero velocity on the next tick (after teleportation)
+      velocity = {x = 0, y = 0},
+      last_postition = {x = 0, y = 0}, -- position last tick
+      postition = {x = 0, y = 0}, -- current position
+      set_postition = {x = 0, y = 0}, -- the position as set by script, deviation from it means that the player caused movement, used for thrust in zero-G
+      opened = nil or Entity,
+      opened_gui_type = nil or GuiType(int),
+      remote_view_active = nil or true,
+      remote_view_zone_name = nil or Zone Name,
+      character = LuaEntity, -- store link while in remote view
+      saved_swaps = dictionary{ -- saved locations for quick swapping in remote view
+        saved_swap_id = {
+          signal = SignalID -- the icon
+          location_reference = Location -- the location that this swap is
+        }
+        id = int -- the next available unique index to assign to a newly created saved location
+      }
+      saved_hotkeys = dictionary{ -- what saved location each quick swap hotkey goes to
+        hotkey_dropdown_index -> saved_swap_id -- maps the index in the hotkey dropdown to the saved_swap_id it swaps to
+      }
+      quick_swap_opened_item_name -- what quick swap is being viewed in the editing modal
+      quick_swap_selected_hotkey -- what hotkey index is set in the editing modal dropdown
+    }
+  },
+  chart_tag_buffer array{ -- array of chart_tag_definitions that add map markers when the area has been charted (marker fails if not charted)
+    chart_tag_next_id = chart_tag_definition {
+      surface_name (optional)
+      force_name
+      position
+      surface = LuaSurface
+      icon_type (item/virtual)
+      icon_name
+      text
+      chart_range (optional)
+    }
+  },
+  chart_tag_next_id = int,
+  rocket_launch_pads = array{
+    unit_number = RocketLaunchPad{}
+  },
+  rocket_landing_pads = array{
+    unit_number = RocketLandingPad{}
+  },
+  forces = dictionary{
+    force_name = {
+      force_name = string,
+      zones_discovered_count = 1, -- planets and moons discovered
+      zones_discovered = dictionary{
+        zone_index = {
+          [455]={ -- Note: orbits are not discovered, the parent zone is.
+            discovered_at=16798383
+          },
+          [457]={
+            discovered_at=16798383
+          },
+        }
+      },
+      satellites_launched = count by silo mk1,
+      cargo_rockets_launched =- count of launches,
+      cargo_rockets_crashed = count of launches that crashed,
+      rocket_landing_pad_names = dictionary {
+        rocket_landing_pad_name = array{
+          unit_number = RocketLandingPad{
+            type = name_rocket_landing_pad
+            valid = true,
+            force_name  -- string
+            unit_number -- uint
+            name -- string
+            container -- primary entity
+            inbound_rocket -- bool
+            zone = Zone{}, -- the zone occupied
+          }
+        }
+      }
+      zone_assets = dictionary{
+        zone_index = dictionary{
+          rocket_launch_pad_names = dictionary { -- is it really necessary to have these named?
+            rocket_launch_pad_name = array{
+              unit_number = RocketLaunchPad {
+                type = name_rocket_launch_pad
+                valid = true,
+                force_name  -- string
+                unit_number -- uint
+                name -- string
+                container -- container primary entity
+                section_input -- vehicle entity nullable
+                tank -- storage tank entity
+                silo -- rocket silo entity
+                combinator -- combinator entity
+                seats[] -- entity
+                settings -- speaker
+                rocket_sections -- unit
+                crew_capsules -- unit
+                lua_fuel -- float - additional fuel otherwise fuel tank would need to be huge.
+                required_fuel -- cached for ui
+                total_fuel -- cached for ui, lua_fuel + tank fuel
+                launch_status -- int: -1 when not ready, ticks up while launching so things can be timed
+                zone = Zone{}, -- the zone occupied
+                destination = nil or Destination{ -- make deepcopy safe
+                  type = "zone" or "landing-pad",
+                  zone = Zone,
+                  landing_pad_name = "Pad Name" -- "landing-pad" type only
+                } -- as above
+                launching_to_destination = nil
+                  or LockedDestination{
+                    type = "zone" or "landing-pad",
+                    zone = Zone,
+                    position = {x=x,y=y} -- set once launch is locked and there is no landing pad
+                    landing_pad_name = "Landing Pad Name", -- optional, sets attempt to land at a landing pad with this name in the target zone
+                    landing_pad = LandingPad{}, -- set once launch is locked to a landing pad
+                  }
+                launch_trigger -- string: none / fuel_full / cargo_full / signal
+              }
+            }
+          },
+          rocket_landing_pad_names = dictionary {
+            rocket_landing_pad_name = array{
+              unit_number = RocketLandingPad{
+                type = name_rocket_landing_pad
+                valid = true,
+                force_name  -- string
+                unit_number -- uint
+                name -- string
+                container -- primary entity
+                inbound_rocket -- bool
+                zone = Zone{}, -- the zone occupied
+              }
+            }
+          }
+        }
+      }
+      nauvis_satellite = Position,
+      zone_priorities = {
+        zone_index = priority(int)
+      },
+      first_entered_vault = Zone,
+      homeworld_index = zone_index,
+
+    }
+  },
+  space_capsule_launches = array {
+    vehicle.unit_number = {
+      force_name = vehicle.force.name,
+      unit_number = vehicle.unit_number,
+      vehicle = vehicle,
+      shadow = shadow,
+      light = light,
+      start_position = vehicle.position,
+      launch_progress = 1,
+      destination_zone = target_zone,
+      destination_position = find_zone_landing_position(target_zone),
+      passengers = passenger_indexes,
+    }
+  },
+  resources_and_controls = {
+    -- saves settings related to surface and resource generation.
+    -- If settings change between save/load then parts of
+
+  }
+}

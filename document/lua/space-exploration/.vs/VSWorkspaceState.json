@@ -1,0 +1,16 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\prototypes",
+    "\\prototypes\\phase-1",
+    "\\prototypes\\phase-1\\combined",
+    "\\prototypes\\phase-1\\compatibility",
+    "\\prototypes\\phase-2",
+    "\\prototypes\\phase-2\\compatibility",
+    "\\prototypes\\phase-3",
+    "\\prototypes\\phase-multi",
+    "\\scripts"
+  ],
+  "SelectedNode": "\\scripts\\shield-projector.lua",
+  "PreviewInSolutionExplorer": false
+}
